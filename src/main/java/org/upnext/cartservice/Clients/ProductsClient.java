@@ -7,8 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.upnext.sharedlibrary.Dtos.ProductDto;
 
 @FeignClient(name = "product-service", url = "${api.gateway.url}/product-service")
-@Profile("!dev")
 public interface ProductsClient {
-    @GetMapping("/product/{id}")
+    @GetMapping("/products/{id}")
     ProductDto getProduct(@PathVariable Long id);
 }
