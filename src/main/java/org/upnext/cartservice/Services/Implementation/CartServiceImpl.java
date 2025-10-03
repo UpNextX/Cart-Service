@@ -11,7 +11,8 @@ import org.upnext.cartservice.Models.CartItem;
 import org.upnext.cartservice.Repositories.CartRepository;
 import org.upnext.cartservice.Services.CartService;
 import org.upnext.sharedlibrary.Dtos.ProductDto;
-import org.upnext.sharedlibrary.Exceptions.NotFoundException;
+import org.upnext.sharedlibrary.Errors.Error;
+import org.upnext.sharedlibrary.Errors.Result;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,32 +30,46 @@ public class CartServiceImpl implements CartService {
         this.productsClient = productsClient;
     }
 
-    private Cart getCartObjectById(Long cartId){
-        return cartRepository.findById(cartId)
-                .orElseThrow(() -> new NotFoundException(String.format("Cart with id %d not found!", cartId)));
+    private Optional<Cart> getCartObjectById(Long cartId) {
+        return cartRepository.findById(cartId);
     }
 
-    @Override
-    public CartDto getCartById(Long id) {
-        Cart cart = getCartObjectById(id);
-
-        return cartMapper.toCartDto(cart);
+    public Result<CartDto> getCartById(Long id) {
+        return getCartObjectById(id)
+                .map(
+                        cart -> Result.success(cartMapper.toCartDto(cart))
+                        )
+                .orElse(Result.failure(new Error(
+                        "CART_NOT_FOUND",
+                        String.format("Cart with id %d not found!", id),
+                        404
+                )));
     }
 
+
     @Override
-    public List<CartDto> getAllCarts() {
+    public Result<List<CartDto>> getAllCarts() {
         List<Cart> allCarts = cartRepository.findAll();
 
-        return allCarts.stream()
+        return Result.success(allCarts.stream()
                 .map(cartMapper::toCartDto)
-                .toList();
+                .toList());
     }
 
 
     @Override
     @Transactional
-    public CartDto addItemToCart(Long cartId, CartItemRequest cartItemRequest) {
-        Cart cart = getCartObjectById(cartId);
+    public Result<CartDto> addItemToCart(Long cartId, CartItemRequest cartItemRequest) {
+        Optional<Cart> cartOpt = getCartObjectById(cartId);
+        if(cartOpt.isEmpty()){
+            return Result.failure(new Error(
+                    "CART_NOT_FOUND",
+                    String.format("Cart with id %d not found!", cartId),
+                    404
+            ));
+        }
+
+        Cart cart = cartOpt.get();
 
         ProductDto productDto = productsClient.getProduct(cartItemRequest.getProductId());
 
@@ -62,10 +77,10 @@ public class CartServiceImpl implements CartService {
                 .filter(item -> item.getProductId().equals(cartItemRequest.getProductId()))
                 .findFirst();
 
-        if(existingItemOpt.isPresent()){
+        if (existingItemOpt.isPresent()) {
             CartItem existingItem = existingItemOpt.get();
             existingItem.setQuantity(cartItemRequest.getQuantity());
-        }else{
+        } else {
             CartItem cartItem = new CartItem();
             cartItem.setProductId(cartItemRequest.getProductId());
             cartItem.setQuantity(cartItemRequest.getQuantity());
@@ -73,28 +88,46 @@ public class CartServiceImpl implements CartService {
             cart.getItems().add(cartItem);
         }
 
-        return cartMapper.toCartDto(cartRepository.save(cart));
+        return Result.success(cartMapper.toCartDto(cartRepository.save(cart)));
     }
 
     @Override
     @Transactional
-    public CartDto updateItemCart(Long cartId, CartItemRequest cartItemRequest) {
+    public Result<CartDto> updateItemCart(Long cartId, CartItemRequest cartItemRequest) {
         return addItemToCart(cartId, cartItemRequest);
     }
 
     @Override
     @Transactional
-    public CartDto deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest) {
-        Cart cart = getCartObjectById(cartId);
+    public Result<CartDto> deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest) {
+        Optional<Cart> cartOpt = getCartObjectById(cartId);
+        if(cartOpt.isEmpty()){
+            return Result.failure(new Error(
+                    "CART_NOT_FOUND",
+                    String.format("Cart with id %d not found!", cartId),
+                    404
+            ));
+        }
 
-        CartItem cartItem = cart.getItems()
+        Cart cart = cartOpt.get();
+
+        Optional<CartItem> cartItemOptional = cart.getItems()
                 .stream()
                 .filter(item -> item.getProductId().equals(cartItemRequest.getProductId()))
-                .findFirst().orElseThrow();
+                .findFirst();
+
+        if(cartItemOptional.isEmpty()){
+            return Result.failure(new Error(
+                    "Product_NOT_FOUND",
+                    String.format("Product with id %d not found in the cart!", cartItemRequest.getProductId()),
+                    404
+            ));
+        }
+        CartItem cartItem = cartItemOptional.get();
 
         cart.getItems().remove(cartItem);
 
-        return cartMapper.toCartDto(cartRepository.save(cart));
+        return Result.success(cartMapper.toCartDto(cartRepository.save(cart)));
 
 
     }

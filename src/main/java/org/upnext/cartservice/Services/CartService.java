@@ -3,16 +3,17 @@ package org.upnext.cartservice.Services;
 import org.upnext.sharedlibrary.Dtos.CartDto;
 import org.upnext.cartservice.Dtos.CartItemRequest;
 
+import org.upnext.sharedlibrary.Errors.Result;
 import java.util.List;
 
 public interface CartService {
-    CartDto getCartById(Long id);
+    Result<CartDto> getCartById(Long id);
 
-    List<CartDto> getAllCarts();
+    Result<List<CartDto>> getAllCarts();
 
-    CartDto addItemToCart(Long cartid, CartItemRequest cartItemRequest);
+    Result<CartDto> addItemToCart(Long cartid, CartItemRequest cartItemRequest);
 
-    CartDto updateItemCart(Long cartId, CartItemRequest cartItemRequest);
+    Result<CartDto> updateItemCart(Long cartId, CartItemRequest cartItemRequest);
 
-    CartDto deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest);
+    Result<CartDto> deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest);
 }

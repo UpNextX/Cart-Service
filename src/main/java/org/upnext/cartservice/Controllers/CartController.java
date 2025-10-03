@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.upnext.sharedlibrary.Dtos.CartDto;
 import org.upnext.cartservice.Dtos.CartItemRequest;
 import org.upnext.cartservice.Services.CartService;
+import org.upnext.sharedlibrary.Errors.Result;
 
 import java.util.List;
 
@@ -20,27 +21,58 @@ public class CartController {
 
     // For admin
     @GetMapping
-    public ResponseEntity<List<CartDto>> getAllCarts(){
-        return ResponseEntity.ok(cartService.getAllCarts());
+    public ResponseEntity<?> getAllCarts(){
+        Result<List<CartDto>> result = cartService.getAllCarts();
+        System.out.println("LOL");
+        if(result.getIsFailure()){
+            return ResponseEntity
+                    .status(result.getError().getStatusCode())
+                    .body(result.getError());
+        }
+        return ResponseEntity.ok(result.getValue());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CartDto> getCartById(@PathVariable Long id){
-        return ResponseEntity.ok(cartService.getCartById(id));
+    public ResponseEntity<?> getCartById(@PathVariable Long id){
+        Result<CartDto> result = cartService.getCartById(id);
+        if(result.getIsFailure()){
+            return ResponseEntity
+                    .status(result.getError().getStatusCode())
+                    .body(result.getError());
+        }
+        return ResponseEntity.ok(result.getValue());
     }
 
     @PostMapping("/{cartId}")
-    public ResponseEntity<CartDto> addItemToCart(@PathVariable Long cartId, @Valid @RequestBody CartItemRequest cartItemRequest){
-        return ResponseEntity.ok(cartService.addItemToCart(cartId, cartItemRequest));
+    public ResponseEntity<?> addItemToCart(@PathVariable Long cartId, @Valid @RequestBody CartItemRequest cartItemRequest){
+        Result<CartDto> result = cartService.addItemToCart(cartId, cartItemRequest);
+        if(result.getIsFailure()){
+            return ResponseEntity
+                    .status(result.getError().getStatusCode())
+                    .body(result.getError());
+        }
+        return ResponseEntity.ok(result.getValue());
     }
 
     @PutMapping("/{cartId}")
-    public  ResponseEntity<CartDto> updateItemCart(@PathVariable Long cartId, @Valid @RequestBody CartItemRequest cartItemRequest){
-        return ResponseEntity.ok(cartService.updateItemCart(cartId, cartItemRequest));
+    public  ResponseEntity<?> updateItemCart(@PathVariable Long cartId, @Valid @RequestBody CartItemRequest cartItemRequest){
+        Result<CartDto> result = cartService.updateItemCart(cartId, cartItemRequest);
+        if(result.getIsFailure()){
+            return ResponseEntity
+                    .status(result.getError().getStatusCode())
+                    .body(result.getError());
+        }
+        return ResponseEntity.ok(result.getValue());
     }
 
     @DeleteMapping("/{cartId}")
-    public ResponseEntity<CartDto> deleteItemCart(@PathVariable Long cartId, @RequestBody CartItemRequest cartItemRequest){
-        return ResponseEntity.ok(cartService.deleteItemFromCart(cartId, cartItemRequest));
+    public ResponseEntity<?> deleteItemCart(@PathVariable Long cartId, @RequestBody CartItemRequest cartItemRequest){
+        Result<CartDto> result = cartService.deleteItemFromCart(cartId, cartItemRequest);
+        if(result.getIsFailure()){
+            return ResponseEntity
+                    .status(result.getError().getStatusCode())
+                    .body(result.getError());
+        }
+        return ResponseEntity.ok(result.getValue());
     }
 }
