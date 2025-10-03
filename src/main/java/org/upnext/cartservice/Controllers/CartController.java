@@ -3,10 +3,8 @@ package org.upnext.cartservice.Controllers;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.upnext.cartservice.Dtos.CartDto;
-import org.upnext.cartservice.Dtos.CartItemDto;
+import org.upnext.sharedlibrary.Dtos.CartDto;
 import org.upnext.cartservice.Dtos.CartItemRequest;
-import org.upnext.cartservice.Models.Cart;
 import org.upnext.cartservice.Services.CartService;
 
 import java.util.List;
@@ -34,5 +32,15 @@ public class CartController {
     @PostMapping("/{cartId}")
     public ResponseEntity<CartDto> addItemToCart(@PathVariable Long cartId, @Valid @RequestBody CartItemRequest cartItemRequest){
         return ResponseEntity.ok(cartService.addItemToCart(cartId, cartItemRequest));
+    }
+
+    @PutMapping("/{cartId}")
+    public  ResponseEntity<CartDto> updateItemCart(@PathVariable Long cartId, @Valid @RequestBody CartItemRequest cartItemRequest){
+        return ResponseEntity.ok(cartService.updateItemCart(cartId, cartItemRequest));
+    }
+
+    @DeleteMapping("/{cartId}")
+    public ResponseEntity<CartDto> deleteItemCart(@PathVariable Long cartId, @RequestBody CartItemRequest cartItemRequest){
+        return ResponseEntity.ok(cartService.deleteItemFromCart(cartId, cartItemRequest));
     }
 }
