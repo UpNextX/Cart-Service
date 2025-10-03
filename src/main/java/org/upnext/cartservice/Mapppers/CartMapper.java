@@ -31,7 +31,7 @@ public class CartMapper {
 
         cartDto.setTotalCost(
                 cartDto.getItems().stream()
-                        .mapToDouble(item -> item.getPrice() * item.getQuantity())
+                        .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
                         .sum()
         );
         return cartDto;
@@ -41,10 +41,7 @@ public class CartMapper {
         ProductDto productDto = productsClient.getProduct(cartItem.getProductId());
         return CartItemDto.builder()
                 .id(cartItem.getId())
-                .productId(cartItem.getProductId())
-                .price(productDto.getPrice())
-                .productName(productDto.getName())
-                .productImageUrl(productDto.getImageUrl())
+                .product(productDto)
                 .quantity(cartItem.getQuantity())
                 .build();
     }

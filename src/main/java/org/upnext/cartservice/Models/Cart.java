@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.upnext.cartservice.Clients.ProductsClient;
 
 import java.time.LocalDateTime;
 import java.util.List;
