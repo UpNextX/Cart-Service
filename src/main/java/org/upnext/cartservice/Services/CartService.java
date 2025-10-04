@@ -15,7 +15,9 @@ public interface CartService {
 
     Result<List<CartDto>> getAllCarts();
 
-    Result<URI> addItemToCart(Long cartid, CartItemRequest cartItemRequest, UriComponentsBuilder urb);
+    Result<CartDto> getCartByUserId(Long userId);
+
+    Result<URI> addItemToCart(Long userId, CartItemRequest cartItemRequest, UriComponentsBuilder urb);
 
     Result<Void> updateItemCart(Long cartId, CartItemRequest cartItemRequest);
 

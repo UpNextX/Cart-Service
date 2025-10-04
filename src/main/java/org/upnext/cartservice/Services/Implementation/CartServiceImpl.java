@@ -34,6 +34,16 @@ public class CartServiceImpl implements CartService {
         this.productsClient = productsClient;
     }
 
+
+    @Override
+    public Result<List<CartDto>> getAllCarts() {
+        List<Cart> allCarts = cartRepository.findAll();
+
+        return Result.success(allCarts.stream()
+                .map(cartMapper::toCartDto)
+                .toList());
+    }
+
     private Optional<Cart> getCartObjectById(Long cartId) {
         return cartRepository.findById(cartId);
     }
@@ -48,19 +58,17 @@ public class CartServiceImpl implements CartService {
 
 
     @Override
-    public Result<List<CartDto>> getAllCarts() {
-        List<Cart> allCarts = cartRepository.findAll();
-
-        return Result.success(allCarts.stream()
-                .map(cartMapper::toCartDto)
-                .toList());
+    public Result<CartDto> getCartByUserId(Long userId) {
+        return cartRepository.findByUserId(userId)
+                .map(cart -> Result.success(cartMapper.toCartDto(cart)))
+                .orElse(Result.failure(CartNotFound));
     }
 
 
     @Override
     @Transactional
-    public Result<URI> addItemToCart(Long cartId, CartItemRequest cartItemRequest, UriComponentsBuilder urb) {
-        Optional<Cart> cartOpt = getCartObjectById(cartId);
+    public Result<URI> addItemToCart(Long userId, CartItemRequest cartItemRequest, UriComponentsBuilder urb) {
+        Optional<Cart> cartOpt = cartRepository.findByUserId(userId);
         if(cartOpt.isEmpty()){
             return Result.failure(CartNotFound);
         }
@@ -86,16 +94,16 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
 
         URI uri = urb.
-                path("/carts/{cartid}")
-                .buildAndExpand(cartId)
+                path("/carts/me}")
+                .buildAndExpand()
                 .toUri();
         return Result.success(uri);
     }
 
     @Override
     @Transactional
-    public Result<Void> updateItemCart(Long cartId, CartItemRequest cartItemRequest) {
-        Optional<Cart> cartOpt = getCartObjectById(cartId);
+    public Result<Void> updateItemCart(Long userId, CartItemRequest cartItemRequest) {
+        Optional<Cart> cartOpt = cartRepository.findByUserId(userId);
         if(cartOpt.isEmpty()){
             return Result.failure(CartNotFound);
         }
@@ -125,8 +133,8 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public Result<Void> deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest) {
-        Optional<Cart> cartOpt = getCartObjectById(cartId);
+    public Result<Void> deleteItemFromCart(Long userId, CartItemRequest cartItemRequest) {
+        Optional<Cart> cartOpt = cartRepository.findByUserId(userId);
         if(cartOpt.isEmpty()){
             return Result.failure(CartNotFound);
         }
