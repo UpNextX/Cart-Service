@@ -1,9 +1,13 @@
 package org.upnext.cartservice.Services;
 
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.upnext.sharedlibrary.Dtos.CartDto;
 import org.upnext.cartservice.Dtos.CartItemRequest;
 
 import org.upnext.sharedlibrary.Errors.Result;
+
+import java.net.URI;
 import java.util.List;
 
 public interface CartService {
@@ -11,9 +15,9 @@ public interface CartService {
 
     Result<List<CartDto>> getAllCarts();
 
-    Result<CartDto> addItemToCart(Long cartid, CartItemRequest cartItemRequest);
+    Result<URI> addItemToCart(Long cartid, CartItemRequest cartItemRequest, UriComponentsBuilder urb);
 
-    Result<CartDto> updateItemCart(Long cartId, CartItemRequest cartItemRequest);
+    Result<Void> updateItemCart(Long cartId, CartItemRequest cartItemRequest);
 
-    Result<CartDto> deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest);
+    Result<Void> deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest);
 }

@@ -2,6 +2,7 @@ package org.upnext.cartservice.Services.Implementation;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.upnext.cartservice.Dtos.CartItemRequest;
 import org.upnext.cartservice.Mapppers.CartMapper;
 import org.upnext.cartservice.Clients.ProductsClient;
@@ -14,8 +15,11 @@ import org.upnext.sharedlibrary.Dtos.ProductDto;
 import org.upnext.sharedlibrary.Errors.Error;
 import org.upnext.sharedlibrary.Errors.Result;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+
+import static org.upnext.cartservice.Errors.CartErrors.CartNotFound;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -39,11 +43,7 @@ public class CartServiceImpl implements CartService {
                 .map(
                         cart -> Result.success(cartMapper.toCartDto(cart))
                         )
-                .orElse(Result.failure(new Error(
-                        "CART_NOT_FOUND",
-                        String.format("Cart with id %d not found!", id),
-                        404
-                )));
+                .orElse(Result.failure(CartNotFound));
     }
 
 
@@ -59,14 +59,10 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public Result<CartDto> addItemToCart(Long cartId, CartItemRequest cartItemRequest) {
+    public Result<URI> addItemToCart(Long cartId, CartItemRequest cartItemRequest, UriComponentsBuilder urb) {
         Optional<Cart> cartOpt = getCartObjectById(cartId);
         if(cartOpt.isEmpty()){
-            return Result.failure(new Error(
-                    "CART_NOT_FOUND",
-                    String.format("Cart with id %d not found!", cartId),
-                    404
-            ));
+            return Result.failure(CartNotFound);
         }
 
         Cart cart = cartOpt.get();
@@ -87,26 +83,52 @@ public class CartServiceImpl implements CartService {
             cartItem.setCart(cart);
             cart.getItems().add(cartItem);
         }
+        cartRepository.save(cart);
 
-        return Result.success(cartMapper.toCartDto(cartRepository.save(cart)));
+        URI uri = urb.
+                path("/carts/{cartid}")
+                .buildAndExpand(cartId)
+                .toUri();
+        return Result.success(uri);
     }
 
     @Override
     @Transactional
-    public Result<CartDto> updateItemCart(Long cartId, CartItemRequest cartItemRequest) {
-        return addItemToCart(cartId, cartItemRequest);
-    }
-
-    @Override
-    @Transactional
-    public Result<CartDto> deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest) {
+    public Result<Void> updateItemCart(Long cartId, CartItemRequest cartItemRequest) {
         Optional<Cart> cartOpt = getCartObjectById(cartId);
         if(cartOpt.isEmpty()){
+            return Result.failure(CartNotFound);
+        }
+
+        Cart cart = cartOpt.get();
+
+        ProductDto productDto = productsClient.getProduct(cartItemRequest.getProductId());
+
+        Optional<CartItem> existingItemOpt = cart.getItems().stream()
+                .filter(item -> item.getProductId().equals(cartItemRequest.getProductId()))
+                .findFirst();
+
+        if (existingItemOpt.isPresent()) {
+            CartItem existingItem = existingItemOpt.get();
+            existingItem.setQuantity(cartItemRequest.getQuantity());
+        } else {
             return Result.failure(new Error(
-                    "CART_NOT_FOUND",
-                    String.format("Cart with id %d not found!", cartId),
+                    "Product_NOT_FOUND",
+                    String.format("Product with id %d not found in the cart!", cartItemRequest.getProductId()),
                     404
             ));
+        }
+        cartRepository.save(cart);
+
+        return Result.success();
+    }
+
+    @Override
+    @Transactional
+    public Result<Void> deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest) {
+        Optional<Cart> cartOpt = getCartObjectById(cartId);
+        if(cartOpt.isEmpty()){
+            return Result.failure(CartNotFound);
         }
 
         Cart cart = cartOpt.get();
@@ -126,9 +148,9 @@ public class CartServiceImpl implements CartService {
         CartItem cartItem = cartItemOptional.get();
 
         cart.getItems().remove(cartItem);
+        cartRepository.save(cart);
 
-        return Result.success(cartMapper.toCartDto(cartRepository.save(cart)));
-
+        return Result.success();
 
     }
 

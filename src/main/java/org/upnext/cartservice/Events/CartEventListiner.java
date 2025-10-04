@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.upnext.cartservice.Repositories.CartRepository;
 import org.upnext.sharedlibrary.Events.OrderCreatedEvent;
 
-@Service
+//@Service
 public class CartEventListiner {
     private final CartRepository cartRepository;
     public CartEventListiner(CartRepository cartRepository){
