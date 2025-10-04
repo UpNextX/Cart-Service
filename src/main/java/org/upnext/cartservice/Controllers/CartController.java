@@ -28,7 +28,7 @@ public class CartController {
     @GetMapping
     public ResponseEntity<?> getAllCarts(@AuthenticationPrincipal UserDto userDto) {
         if(userDto.getRole() != "ADMIN"){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         Result<List<CartDto>> result = cartService.getAllCarts();
@@ -42,7 +42,6 @@ public class CartController {
 
     @GetMapping("/me")
     public ResponseEntity<?> getCartById(@AuthenticationPrincipal UserDto userDto) {
-        System.out.println("HERE");
         Result<CartDto> result = cartService.getCartByUserId(userDto.getId());
         if (result.getIsFailure()) {
             return ResponseEntity
