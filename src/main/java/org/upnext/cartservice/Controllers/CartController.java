@@ -3,6 +3,7 @@ package org.upnext.cartservice.Controllers;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -26,10 +27,9 @@ public class CartController {
 
     // For admin
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllCarts(@AuthenticationPrincipal UserDto userDto) {
-        if(userDto.getRole() != "ADMIN"){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+
 
         Result<List<CartDto>> result = cartService.getAllCarts();
         if (result.getIsFailure()) {
@@ -41,6 +41,7 @@ public class CartController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getCartById(@AuthenticationPrincipal UserDto userDto) {
         Result<CartDto> result = cartService.getCartByUserId(userDto.getId());
         if (result.getIsFailure()) {
@@ -52,6 +53,7 @@ public class CartController {
     }
 
     @PostMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> addItemToCart(@AuthenticationPrincipal UserDto userDto, @Valid @RequestBody CartItemRequest cartItemRequest
             , UriComponentsBuilder urb) {
 
@@ -65,6 +67,7 @@ public class CartController {
     }
 
     @PutMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> updateItemCart(@AuthenticationPrincipal UserDto userDto, @Valid @RequestBody CartItemRequest cartItemRequest) {
         Result<Void> result = cartService.updateItemCart(userDto.getId(), cartItemRequest);
         if (result.getIsFailure()) {
@@ -76,7 +79,8 @@ public class CartController {
     }
 
     @DeleteMapping("/me")
-    public ResponseEntity<?> deleteItemCart(@AuthenticationPrincipal UserDto userDto, @RequestBody CartItemRequest cartItemRequest) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> deleteItemCart(@AuthenticationPrincipal UserDto userDto,@Valid @RequestBody CartItemRequest cartItemRequest) {
         Result<Void> result = cartService.deleteItemFromCart(userDto.getId(), cartItemRequest);
         if (result.getIsFailure()) {
             return ResponseEntity
