@@ -16,6 +16,7 @@ import org.upnext.sharedlibrary.Errors.Error;
 import org.upnext.sharedlibrary.Errors.Result;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,7 +45,9 @@ public class CartServiceImpl implements CartService {
                 .toList());
     }
 
+    // returns the cart object by cartId
     private Optional<Cart> getCartObjectById(Long cartId) {
+
         return cartRepository.findById(cartId);
     }
 
@@ -56,24 +59,29 @@ public class CartServiceImpl implements CartService {
                 .orElse(Result.failure(CartNotFound));
     }
 
+    private Cart createCart(Long userId){
+        Cart cart = new Cart();
+        cart.setUserId(userId);
+        cart.setItems(new ArrayList<>());
+        return cartRepository.save(cart);
+    }
 
+    // returns the cart object by userId
+    public Cart getCartObjectByUserId(Long userId){
+        return cartRepository.findByUserId(userId)
+                .orElse(createCart(userId));
+    }
     @Override
     public Result<CartDto> getCartByUserId(Long userId) {
-        return cartRepository.findByUserId(userId)
-                .map(cart -> Result.success(cartMapper.toCartDto(cart)))
-                .orElse(Result.failure(CartNotFound));
+        return Result.success(cartMapper.toCartDto(getCartObjectByUserId(userId)));
     }
 
 
     @Override
     @Transactional
     public Result<URI> addItemToCart(Long userId, CartItemRequest cartItemRequest, UriComponentsBuilder urb) {
-        Optional<Cart> cartOpt = cartRepository.findByUserId(userId);
-        if(cartOpt.isEmpty()){
-            return Result.failure(CartNotFound);
-        }
 
-        Cart cart = cartOpt.get();
+        Cart cart = getCartObjectByUserId(userId);
 
         ProductDto productDto = productsClient.getProduct(cartItemRequest.getProductId());
 
@@ -103,12 +111,8 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public Result<Void> updateItemCart(Long userId, CartItemRequest cartItemRequest) {
-        Optional<Cart> cartOpt = cartRepository.findByUserId(userId);
-        if(cartOpt.isEmpty()){
-            return Result.failure(CartNotFound);
-        }
 
-        Cart cart = cartOpt.get();
+        Cart cart = getCartObjectByUserId(userId);
 
         ProductDto productDto = productsClient.getProduct(cartItemRequest.getProductId());
 
@@ -134,12 +138,9 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public Result<Void> deleteItemFromCart(Long userId, CartItemRequest cartItemRequest) {
-        Optional<Cart> cartOpt = cartRepository.findByUserId(userId);
-        if(cartOpt.isEmpty()){
-            return Result.failure(CartNotFound);
-        }
 
-        Cart cart = cartOpt.get();
+        Cart cart = getCartObjectByUserId(userId);
+
 
         Optional<CartItem> cartItemOptional = cart.getItems()
                 .stream()

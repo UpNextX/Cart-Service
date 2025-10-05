@@ -1,4 +1,4 @@
-package org.upnext.cartservice.JWT;
+package org.upnext.cartservice.Configurations;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;

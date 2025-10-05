@@ -1,4 +1,4 @@
-package org.upnext.cartservice.JWT;
+package org.upnext.cartservice.Configurations;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import org.upnext.sharedlibrary.Dtos.UserDto;
+
 @Component
 public class JwtUtils {
 

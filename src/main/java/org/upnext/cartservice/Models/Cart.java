@@ -24,9 +24,11 @@ public class Cart {
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CartItem> items;
+
     @NotNull
     @Column(nullable = false, updatable = false)
     LocalDateTime createdAt;
+
     @NotNull
     @Column(nullable = false)
     LocalDateTime updatedAt;
