@@ -56,10 +56,11 @@ public class CartServiceImpl implements CartService {
                 .map(
                         cart -> Result.success(cartMapper.toCartDto(cart))
                         )
-                .orElse(Result.failure(CartNotFound));
+                .orElseGet(()->Result.failure(CartNotFound));
     }
 
     private Cart createCart(Long userId){
+        System.out.println("Creating cart for user: " + userId);
         Cart cart = new Cart();
         cart.setUserId(userId);
         cart.setItems(new ArrayList<>());
@@ -69,8 +70,9 @@ public class CartServiceImpl implements CartService {
     // returns the cart object by userId
     public Cart getCartObjectByUserId(Long userId){
         return cartRepository.findByUserId(userId)
-                .orElse(createCart(userId));
+                .orElseGet(()->createCart(userId));
     }
+
     @Override
     public Result<CartDto> getCartByUserId(Long userId) {
         return Result.success(cartMapper.toCartDto(getCartObjectByUserId(userId)));
