@@ -1,12 +1,12 @@
 package org.upnext.cartservice.Controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.upnext.cartservice.Utils.UserExtractor;
 import org.upnext.sharedlibrary.Dtos.CartDto;
 import org.upnext.cartservice.Dtos.CartItemRequest;
 import org.upnext.cartservice.Services.CartService;
@@ -27,9 +27,15 @@ public class CartController {
 
     // For admin
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getAllCarts(@AuthenticationPrincipal UserDto userDto) {
+    public ResponseEntity<?> getAllCarts(HttpServletRequest request) {
+        System.out.println("Getting all carts");
+        UserDto user = (UserDto) UserExtractor.userExtractor(request);
 
+        if (user == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("Unauthorized: missing or invalid user header");
+        }
 
         Result<List<CartDto>> result = cartService.getAllCarts();
         if (result.getIsFailure()) {
@@ -41,9 +47,9 @@ public class CartController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getCartById(@AuthenticationPrincipal UserDto userDto) {
-        Result<CartDto> result = cartService.getCartByUserId(userDto.getId());
+    public ResponseEntity<?> getCartById(HttpServletRequest request) {
+        UserDto user = (UserDto) UserExtractor.userExtractor(request);
+        Result<CartDto> result = cartService.getCartByUserId(user.getId());
         if (result.getIsFailure()) {
             return ResponseEntity
                     .status(result.getError().getStatusCode())
@@ -53,11 +59,12 @@ public class CartController {
     }
 
     @PostMapping("/me")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> addItemToCart(@AuthenticationPrincipal UserDto userDto, @Valid @RequestBody CartItemRequest cartItemRequest
+    public ResponseEntity<?> addItemToCart(HttpServletRequest request, @Valid @RequestBody CartItemRequest cartItemRequest
             , UriComponentsBuilder urb) {
+        UserDto user = (UserDto) UserExtractor.userExtractor(request);
 
-        Result<URI> result = cartService.addItemToCart(userDto.getId(), cartItemRequest, urb);
+
+        Result<URI> result = cartService.addItemToCart(user.getId(), cartItemRequest, urb);
         if (result.getIsFailure()) {
             return ResponseEntity
                     .status(result.getError().getStatusCode())
@@ -67,9 +74,10 @@ public class CartController {
     }
 
     @PutMapping("/me")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> updateItemCart(@AuthenticationPrincipal UserDto userDto, @Valid @RequestBody CartItemRequest cartItemRequest) {
-        Result<Void> result = cartService.updateItemCart(userDto.getId(), cartItemRequest);
+    public ResponseEntity<?> updateItemCart(HttpServletRequest request, @Valid @RequestBody CartItemRequest cartItemRequest) {
+        UserDto user = (UserDto) UserExtractor.userExtractor(request);
+
+        Result<Void> result = cartService.updateItemCart(user.getId(), cartItemRequest);
         if (result.getIsFailure()) {
             return ResponseEntity
                     .status(result.getError().getStatusCode())
@@ -79,9 +87,10 @@ public class CartController {
     }
 
     @DeleteMapping("/me")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> deleteItemCart(@AuthenticationPrincipal UserDto userDto,@Valid @RequestBody CartItemRequest cartItemRequest) {
-        Result<Void> result = cartService.deleteItemFromCart(userDto.getId(), cartItemRequest);
+    public ResponseEntity<?> deleteItemCart(HttpServletRequest request, @Valid @RequestBody CartItemRequest cartItemRequest) {
+        UserDto user = (UserDto) UserExtractor.userExtractor(request);
+
+        Result<Void> result = cartService.deleteItemFromCart(user.getId(), cartItemRequest);
         if (result.getIsFailure()) {
             return ResponseEntity
                     .status(result.getError().getStatusCode())

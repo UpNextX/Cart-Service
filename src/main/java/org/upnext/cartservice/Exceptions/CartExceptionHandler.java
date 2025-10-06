@@ -1,5 +1,6 @@
 package org.upnext.cartservice.Exceptions;
 
+import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -12,6 +13,11 @@ public class CartExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<String> notFoundCartHandler(NotFoundException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(FeignException.NotFound.class)
+    public ResponseEntity<String> notFoundCartHandler(FeignException.NotFound ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
     }
 
 }
