@@ -16,6 +16,7 @@ import org.upnext.sharedlibrary.Errors.Error;
 import org.upnext.sharedlibrary.Errors.Result;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,18 +35,6 @@ public class CartServiceImpl implements CartService {
         this.productsClient = productsClient;
     }
 
-    private Optional<Cart> getCartObjectById(Long cartId) {
-        return cartRepository.findById(cartId);
-    }
-
-    public Result<CartDto> getCartById(Long id) {
-        return getCartObjectById(id)
-                .map(
-                        cart -> Result.success(cartMapper.toCartDto(cart))
-                        )
-                .orElse(Result.failure(CartNotFound));
-    }
-
 
     @Override
     public Result<List<CartDto>> getAllCarts() {
@@ -56,16 +45,45 @@ public class CartServiceImpl implements CartService {
                 .toList());
     }
 
+    // returns the cart object by cartId
+    private Optional<Cart> getCartObjectById(Long cartId) {
+
+        return cartRepository.findById(cartId);
+    }
+
+    public Result<CartDto> getCartById(Long id) {
+        return getCartObjectById(id)
+                .map(
+                        cart -> Result.success(cartMapper.toCartDto(cart))
+                        )
+                .orElseGet(()->Result.failure(CartNotFound));
+    }
+
+    private Cart createCart(Long userId){
+        System.out.println("Creating cart for user: " + userId);
+        Cart cart = new Cart();
+        cart.setUserId(userId);
+        cart.setItems(new ArrayList<>());
+        return cartRepository.save(cart);
+    }
+
+    // returns the cart object by userId
+    public Cart getCartObjectByUserId(Long userId){
+        return cartRepository.findByUserId(userId)
+                .orElseGet(()->createCart(userId));
+    }
+
+    @Override
+    public Result<CartDto> getCartByUserId(Long userId) {
+        return Result.success(cartMapper.toCartDto(getCartObjectByUserId(userId)));
+    }
+
 
     @Override
     @Transactional
-    public Result<URI> addItemToCart(Long cartId, CartItemRequest cartItemRequest, UriComponentsBuilder urb) {
-        Optional<Cart> cartOpt = getCartObjectById(cartId);
-        if(cartOpt.isEmpty()){
-            return Result.failure(CartNotFound);
-        }
+    public Result<URI> addItemToCart(Long userId, CartItemRequest cartItemRequest, UriComponentsBuilder urb) {
 
-        Cart cart = cartOpt.get();
+        Cart cart = getCartObjectByUserId(userId);
 
         ProductDto productDto = productsClient.getProduct(cartItemRequest.getProductId());
 
@@ -86,21 +104,17 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
 
         URI uri = urb.
-                path("/carts/{cartid}")
-                .buildAndExpand(cartId)
+                path("/carts/me}")
+                .buildAndExpand()
                 .toUri();
         return Result.success(uri);
     }
 
     @Override
     @Transactional
-    public Result<Void> updateItemCart(Long cartId, CartItemRequest cartItemRequest) {
-        Optional<Cart> cartOpt = getCartObjectById(cartId);
-        if(cartOpt.isEmpty()){
-            return Result.failure(CartNotFound);
-        }
+    public Result<Void> updateItemCart(Long userId, CartItemRequest cartItemRequest) {
 
-        Cart cart = cartOpt.get();
+        Cart cart = getCartObjectByUserId(userId);
 
         ProductDto productDto = productsClient.getProduct(cartItemRequest.getProductId());
 
@@ -125,13 +139,10 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public Result<Void> deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest) {
-        Optional<Cart> cartOpt = getCartObjectById(cartId);
-        if(cartOpt.isEmpty()){
-            return Result.failure(CartNotFound);
-        }
+    public Result<Void> deleteItemFromCart(Long userId, CartItemRequest cartItemRequest) {
 
-        Cart cart = cartOpt.get();
+        Cart cart = getCartObjectByUserId(userId);
+
 
         Optional<CartItem> cartItemOptional = cart.getItems()
                 .stream()
@@ -152,6 +163,15 @@ public class CartServiceImpl implements CartService {
 
         return Result.success();
 
+    }
+
+    @Override
+    @Transactional
+    public Result<Void> clearCart(Long userId) {
+        Cart cart = getCartObjectByUserId(userId);
+        cart.getItems().clear();
+        cartRepository.save(cart);
+        return Result.success();
     }
 
     public Double getTotalCost(Cart cart) {

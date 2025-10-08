@@ -15,9 +15,13 @@ public interface CartService {
 
     Result<List<CartDto>> getAllCarts();
 
-    Result<URI> addItemToCart(Long cartid, CartItemRequest cartItemRequest, UriComponentsBuilder urb);
+    Result<CartDto> getCartByUserId(Long userId);
 
-    Result<Void> updateItemCart(Long cartId, CartItemRequest cartItemRequest);
+    Result<URI> addItemToCart(Long userId, CartItemRequest cartItemRequest, UriComponentsBuilder urb);
 
-    Result<Void> deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest);
+    Result<Void> updateItemCart(Long userId, CartItemRequest cartItemRequest);
+
+    Result<Void> deleteItemFromCart(Long userId, CartItemRequest cartItemRequest);
+
+    Result<Void> clearCart(Long userId);
 }
