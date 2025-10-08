@@ -19,7 +19,9 @@ public interface CartService {
 
     Result<URI> addItemToCart(Long userId, CartItemRequest cartItemRequest, UriComponentsBuilder urb);
 
-    Result<Void> updateItemCart(Long cartId, CartItemRequest cartItemRequest);
+    Result<Void> updateItemCart(Long userId, CartItemRequest cartItemRequest);
 
-    Result<Void> deleteItemFromCart(Long cartId, CartItemRequest cartItemRequest);
+    Result<Void> deleteItemFromCart(Long userId, CartItemRequest cartItemRequest);
+
+    Result<Void> clearCart(Long userId);
 }

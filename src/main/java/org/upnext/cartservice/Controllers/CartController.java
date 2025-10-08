@@ -49,6 +49,10 @@ public class CartController {
     @GetMapping("/me")
     public ResponseEntity<?> getCartById(HttpServletRequest request) {
         UserDto user = (UserDto) UserExtractor.userExtractor(request);
+        System.out.println("USER" + user);
+        if(user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         Result<CartDto> result = cartService.getCartByUserId(user.getId());
         if (result.getIsFailure()) {
             return ResponseEntity
@@ -92,6 +96,18 @@ public class CartController {
 
         Result<Void> result = cartService.deleteItemFromCart(user.getId(), cartItemRequest);
         if (result.getIsFailure()) {
+            return ResponseEntity
+                    .status(result.getError().getStatusCode())
+                    .body(result.getError());
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/me/clear")
+    public ResponseEntity<?> clearCart(HttpServletRequest request) {
+        UserDto user = (UserDto) UserExtractor.userExtractor(request);
+        Result<Void> result = cartService.clearCart(user.getId());
+        if(result.getIsFailure()) {
             return ResponseEntity
                     .status(result.getError().getStatusCode())
                     .body(result.getError());

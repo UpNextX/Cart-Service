@@ -165,6 +165,15 @@ public class CartServiceImpl implements CartService {
 
     }
 
+    @Override
+    @Transactional
+    public Result<Void> clearCart(Long userId) {
+        Cart cart = getCartObjectByUserId(userId);
+        cart.getItems().clear();
+        cartRepository.save(cart);
+        return Result.success();
+    }
+
     public Double getTotalCost(Cart cart) {
         return cart.getItems()
                 .stream()
