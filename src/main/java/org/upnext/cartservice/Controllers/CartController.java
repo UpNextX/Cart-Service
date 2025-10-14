@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.upnext.cartservice.Utils.UserExtractor;
@@ -26,10 +28,10 @@ public class CartController {
     }
 
     // For admin
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<?> getAllCarts(HttpServletRequest request) {
+    public ResponseEntity<?> getAllCarts(@AuthenticationPrincipal  UserDto user) {
         System.out.println("Getting all carts");
-        UserDto user = (UserDto) UserExtractor.userExtractor(request);
 
         if (user == null) {
             return ResponseEntity
@@ -46,9 +48,9 @@ public class CartController {
         return ResponseEntity.ok(result.getValue());
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
-    public ResponseEntity<?> getCartById(HttpServletRequest request) {
-        UserDto user = (UserDto) UserExtractor.userExtractor(request);
+    public ResponseEntity<?> getCartById(@AuthenticationPrincipal UserDto user) {
         System.out.println("USER" + user);
         if(user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -62,10 +64,10 @@ public class CartController {
         return ResponseEntity.ok(result.getValue());
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/me")
-    public ResponseEntity<?> addItemToCart(HttpServletRequest request, @Valid @RequestBody CartItemRequest cartItemRequest
+    public ResponseEntity<?> addItemToCart(@AuthenticationPrincipal UserDto user, @Valid @RequestBody CartItemRequest cartItemRequest
             , UriComponentsBuilder urb) {
-        UserDto user = (UserDto) UserExtractor.userExtractor(request);
 
 
         Result<URI> result = cartService.addItemToCart(user.getId(), cartItemRequest, urb);
@@ -76,10 +78,9 @@ public class CartController {
         }
         return ResponseEntity.created(result.getValue()).build();
     }
-
+@PreAuthorize("isAuthenticated()")
     @PutMapping("/me")
-    public ResponseEntity<?> updateItemCart(HttpServletRequest request, @Valid @RequestBody CartItemRequest cartItemRequest) {
-        UserDto user = (UserDto) UserExtractor.userExtractor(request);
+    public ResponseEntity<?> updateItemCart(@AuthenticationPrincipal UserDto user, @Valid @RequestBody CartItemRequest cartItemRequest) {
 
         Result<Void> result = cartService.updateItemCart(user.getId(), cartItemRequest);
         if (result.getIsFailure()) {
@@ -89,10 +90,9 @@ public class CartController {
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-
+@PreAuthorize("isAuthenticated()")
     @DeleteMapping("/me")
-    public ResponseEntity<?> deleteItemCart(HttpServletRequest request, @Valid @RequestBody CartItemRequest cartItemRequest) {
-        UserDto user = (UserDto) UserExtractor.userExtractor(request);
+    public ResponseEntity<?> deleteItemCart(@AuthenticationPrincipal UserDto user, @Valid @RequestBody CartItemRequest cartItemRequest) {
 
         Result<Void> result = cartService.deleteItemFromCart(user.getId(), cartItemRequest);
         if (result.getIsFailure()) {
@@ -102,10 +102,9 @@ public class CartController {
         }
         return ResponseEntity.noContent().build();
     }
-
+@PreAuthorize("isAuthenticated()")
     @DeleteMapping("/me/clear")
-    public ResponseEntity<?> clearCart(HttpServletRequest request) {
-        UserDto user = (UserDto) UserExtractor.userExtractor(request);
+    public ResponseEntity<?> clearCart(@AuthenticationPrincipal UserDto user) {
         Result<Void> result = cartService.clearCart(user.getId());
         if(result.getIsFailure()) {
             return ResponseEntity
