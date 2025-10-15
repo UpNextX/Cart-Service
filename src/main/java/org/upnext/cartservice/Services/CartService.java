@@ -21,7 +21,7 @@ public interface CartService {
 
     Result<Void> updateItemCart(Long userId, CartItemRequest cartItemRequest);
 
-    Result<Void> deleteItemFromCart(Long userId, CartItemRequest cartItemRequest);
+    Result<Void> deleteItemFromCart(Long userId, Long id);
 
     Result<Void> clearCart(Long userId);
 }

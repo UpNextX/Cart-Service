@@ -93,10 +93,10 @@ public class CartController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @DeleteMapping("/me")
-    public ResponseEntity<?> deleteItemCart(@AuthenticationPrincipal UserDto user, @Valid @RequestBody CartItemRequest cartItemRequest) {
+    @DeleteMapping("/me/{id}")
+    public ResponseEntity<?> deleteItemCart(@AuthenticationPrincipal UserDto user, @PathVariable("id") Long id) {
 
-        Result<Void> result = cartService.deleteItemFromCart(user.getId(), cartItemRequest);
+        Result<Void> result = cartService.deleteItemFromCart(user.getId(), id);
         if (result.getIsFailure()) {
             return ResponseEntity
                     .status(result.getError().getStatusCode())

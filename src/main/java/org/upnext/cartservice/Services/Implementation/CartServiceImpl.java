@@ -139,20 +139,20 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public Result<Void> deleteItemFromCart(Long userId, CartItemRequest cartItemRequest) {
+    public Result<Void> deleteItemFromCart(Long userId, Long id) {
 
         Cart cart = getCartObjectByUserId(userId);
 
 
         Optional<CartItem> cartItemOptional = cart.getItems()
                 .stream()
-                .filter(item -> item.getProductId().equals(cartItemRequest.getProductId()))
+                .filter(item -> item.getProductId().equals(id))
                 .findFirst();
 
         if(cartItemOptional.isEmpty()){
             return Result.failure(new Error(
                     "Product_NOT_FOUND",
-                    String.format("Product with id %d not found in the cart!", cartItemRequest.getProductId()),
+                    String.format("Product with id %d not found in the cart!", id),
                     404
             ));
         }
