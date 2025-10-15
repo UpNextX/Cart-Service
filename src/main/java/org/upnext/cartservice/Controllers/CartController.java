@@ -30,7 +30,7 @@ public class CartController {
     // For admin
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<?> getAllCarts(@AuthenticationPrincipal  UserDto user) {
+    public ResponseEntity<?> getAllCarts(@AuthenticationPrincipal UserDto user) {
         System.out.println("Getting all carts");
 
         if (user == null) {
@@ -52,7 +52,7 @@ public class CartController {
     @GetMapping("/me")
     public ResponseEntity<?> getCartById(@AuthenticationPrincipal UserDto user) {
         System.out.println("USER" + user);
-        if(user == null) {
+        if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         Result<CartDto> result = cartService.getCartByUserId(user.getId());
@@ -78,7 +78,8 @@ public class CartController {
         }
         return ResponseEntity.created(result.getValue()).build();
     }
-@PreAuthorize("isAuthenticated()")
+
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/me")
     public ResponseEntity<?> updateItemCart(@AuthenticationPrincipal UserDto user, @Valid @RequestBody CartItemRequest cartItemRequest) {
 
@@ -90,7 +91,8 @@ public class CartController {
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-@PreAuthorize("isAuthenticated()")
+
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/me")
     public ResponseEntity<?> deleteItemCart(@AuthenticationPrincipal UserDto user, @Valid @RequestBody CartItemRequest cartItemRequest) {
 
@@ -102,11 +104,12 @@ public class CartController {
         }
         return ResponseEntity.noContent().build();
     }
-@PreAuthorize("isAuthenticated()")
+
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/me/clear")
     public ResponseEntity<?> clearCart(@AuthenticationPrincipal UserDto user) {
         Result<Void> result = cartService.clearCart(user.getId());
-        if(result.getIsFailure()) {
+        if (result.getIsFailure()) {
             return ResponseEntity
                     .status(result.getError().getStatusCode())
                     .body(result.getError());
