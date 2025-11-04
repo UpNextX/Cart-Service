@@ -1,5 +1,11 @@
 package org.upnext.cartservice.Controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,6 +26,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("carts")
+@Tag(
+        name = "Cart Management",
+        description = "APIs for managing user carts, including items, totals, and checkout."
+)
 public class CartController {
     private final CartService cartService;
 
@@ -28,6 +38,15 @@ public class CartController {
     }
 
     // For admin
+    @Operation(
+            summary = "Get all cart for admins only."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved all carts",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CartDto.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized — missing or invalid token"),
+            @ApiResponse(responseCode = "403", description = "Forbidden — user lacks admin privileges")
+    })
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<?> getAllCarts(@AuthenticationPrincipal UserDto user) {
@@ -48,6 +67,17 @@ public class CartController {
         return ResponseEntity.ok(result.getValue());
     }
 
+
+    @Operation(
+            summary = "Get the current user's cart"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved user cart",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CartDto.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized — user not logged in"),
+            @ApiResponse(responseCode = "404", description = "Cart not found for this user")
+    })
+
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<?> getCartById(@AuthenticationPrincipal UserDto user) {
@@ -63,6 +93,14 @@ public class CartController {
         }
         return ResponseEntity.ok(result.getValue());
     }
+    @Operation(
+            summary = "Add item to user's cart"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Item successfully added to cart"),
+            @ApiResponse(responseCode = "400", description = "Invalid product ID or quantity"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized — user not logged in")
+    })
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/me")
@@ -79,6 +117,14 @@ public class CartController {
         return ResponseEntity.created(result.getValue()).build();
     }
 
+    @Operation(
+            summary = "Update item in user's cart"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Item successfully updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid data or missing product"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized — user not logged in")
+    })
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/me")
     public ResponseEntity<?> updateItemCart(@AuthenticationPrincipal UserDto user, @Valid @RequestBody CartItemRequest cartItemRequest) {
@@ -92,6 +138,15 @@ public class CartController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @Operation(
+            summary = "Delete a specific item from user's cart",
+            description = "Removes a specific product from the authenticated user's cart by its ID."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Item successfully deleted"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized — user not logged in"),
+            @ApiResponse(responseCode = "404", description = "Item not found in cart")
+    })
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/me/{id}")
     public ResponseEntity<?> deleteItemCart(@AuthenticationPrincipal UserDto user, @PathVariable("id") Long id) {
@@ -105,6 +160,14 @@ public class CartController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(
+            summary = "Clear user's cart",
+            description = "Removes all items from the authenticated user's cart."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Cart successfully cleared"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized — user not logged in")
+    })
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/me/clear")
     public ResponseEntity<?> clearCart(@AuthenticationPrincipal UserDto user) {
