@@ -98,10 +98,9 @@ public class CartController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Item successfully added to cart"),
-            @ApiResponse(responseCode = "400", description = "Invalid product ID or quantity"),
+            @ApiResponse(responseCode = "400", description = "Invalid product ID or quantity or item already exists in the cart"),
             @ApiResponse(responseCode = "401", description = "Unauthorized — user not logged in")
     })
-
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/me")
     public ResponseEntity<?> addItemToCart(@AuthenticationPrincipal UserDto user, @Valid @RequestBody CartItemRequest cartItemRequest
