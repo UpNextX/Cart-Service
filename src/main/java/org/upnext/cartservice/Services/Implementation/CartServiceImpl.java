@@ -82,7 +82,6 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public Result<URI> addItemToCart(Long userId, CartItemRequest cartItemRequest, UriComponentsBuilder urb) {
-
         Cart cart = getCartObjectByUserId(userId);
 
         ProductDto productDto = productsClient.getProduct(cartItemRequest.getProductId());
@@ -92,8 +91,6 @@ public class CartServiceImpl implements CartService {
                 .findFirst();
 
         if (existingItemOpt.isPresent()) {
-            /*CartItem existingItem = existingItemOpt.get();
-            existingItem.setQuantity(cartItemRequest.getQuantity());*/
             return Result.failure(new Error("ALREADY.EXISTS", "item already exists in the cart", 400));
         } else {
             CartItem cartItem = new CartItem();
@@ -105,7 +102,7 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
 
         URI uri = urb.
-                path("/carts/me}")
+                path("/carts/me")
                 .buildAndExpand()
                 .toUri();
         return Result.success(uri);
