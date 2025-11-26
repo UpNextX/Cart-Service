@@ -1,6 +1,7 @@
 package org.upnext.cartservice.Services.Implementation;
 
 import jakarta.transaction.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.upnext.cartservice.Dtos.CartItemRequest;
@@ -68,12 +69,23 @@ public class CartServiceImpl implements CartService {
     }
 
     // returns the cart object by userId
+    @Transactional
     public Cart getCartObjectByUserId(Long userId){
-        return cartRepository.findByUserId(userId)
-                .orElseGet(()->createCart(userId));
+        Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
+        if(optionalCart.isPresent()){
+            return optionalCart.get();
+        }else{
+            try {
+                return createCart(userId);
+            } catch (DataIntegrityViolationException e) {
+                return cartRepository.findByUserId(userId)
+                        .orElseThrow(() -> new RuntimeException("System Error: Cart creation failed but cart not found."));
+            }
+        }
     }
 
     @Override
+    @Transactional
     public Result<CartDto> getCartByUserId(Long userId) {
         return Result.success(cartMapper.toCartDto(getCartObjectByUserId(userId)));
     }
