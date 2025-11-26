@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
                 name = "uk_cart_product",
                 columnNames = {"cart_id", "product_id"}
         )
-)@Data
+)
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartItem {

@@ -81,7 +81,6 @@ public class CartController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<?> getCartById(@AuthenticationPrincipal UserDto user) {
-        System.out.println("USER" + user);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

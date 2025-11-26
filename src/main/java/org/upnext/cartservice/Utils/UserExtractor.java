@@ -15,14 +15,6 @@ public class UserExtractor {
         try {
             String header = request.getHeader("X-User");
 
-            System.out.println("=== ALL REQUEST HEADERS ===");
-            Enumeration<String> headerNames = request.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
-                String headerValue = request.getHeader(headerName);
-                System.out.println(headerName + ": " + headerValue);
-            }
-            System.out.println("===========================");
 
             if (header == null) {
                 return null;

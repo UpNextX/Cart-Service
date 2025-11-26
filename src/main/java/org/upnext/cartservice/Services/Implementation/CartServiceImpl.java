@@ -91,7 +91,7 @@ public class CartServiceImpl implements CartService {
                 .findFirst();
 
         if (existingItemOpt.isPresent()) {
-            return Result.failure(new Error("ALREADY.EXISTS", "item already exists in the cart", 400));
+            return Result.failure(new Error("ALREADY.EXISTS", "item already exists in the cart", 409));
         } else {
             CartItem cartItem = new CartItem();
             cartItem.setProductId(cartItemRequest.getProductId());

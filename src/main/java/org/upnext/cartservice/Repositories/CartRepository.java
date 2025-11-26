@@ -11,6 +11,7 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Cart> findById(Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Cart> findByUserId(Long userId);
 
 

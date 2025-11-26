@@ -20,6 +20,7 @@ public class Cart {
     Long id;
 
     @NotNull
+    @Column(nullable = false, unique = true)
     Long userId;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
